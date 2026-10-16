@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="theme-color" content="#D42D78">
+<meta name="color-scheme" content="light dark">
+<title>Agenda Étoile</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/calendar.css">
+<link rel="stylesheet" href="css/tasks.css">
+<link rel="stylesheet" href="css/modal.css">
+<link rel="stylesheet" href="css/responsive.css">
+<script src="js/boot.js"></script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-star">★</div>
+  <div class="splash-name">AGENDA ÉTOILE</div>
+</div>
+
+<div class="app">
+  <main id="view" tabindex="-1">
+    <noscript><p>Agenda Étoile a besoin de JavaScript pour fonctionner.</p></noscript>
+  </main>
+</div>
+
+<button class="fab" id="fab" type="button" data-action="add" aria-label="Ajouter une tâche">+</button>
+
+<nav class="nav" id="nav" aria-label="Navigation principale">
+  <button type="button" data-action="nav" data-view="today"><span class="nav-ico" aria-hidden="true">☀</span><span>Aujourd’hui</span></button>
+  <button type="button" data-action="nav" data-view="calendar"><span class="nav-ico" aria-hidden="true">▦</span><span>Calendrier</span></button>
+  <button type="button" data-action="nav" data-view="tasks"><span class="nav-ico" aria-hidden="true">☰</span><span>Tâches</span></button>
+  <button type="button" data-action="nav" data-view="review"><span class="nav-ico" aria-hidden="true">📚</span><span>Révision</span></button>
+  <button type="button" data-action="nav" data-view="progress"><span class="nav-ico" aria-hidden="true">★</span><span>Progrès</span></button>
+  <button type="button" data-action="nav" data-view="settings"><span class="nav-ico" aria-hidden="true">⚙</span><span>Réglages</span></button>
+</nav>
+
+<dialog id="sheet" class="sheet" aria-label="Détails">
+  <div class="grab" aria-hidden="true"></div>
+  <div id="sheetBody" tabindex="-1"></div>
+</dialog>
+
+<dialog id="modal" class="modal" aria-label="Confirmation">
+  <div id="modalBody" class="modal-inner"></div>
+</dialog>
+
+<div id="celebrate" aria-live="polite"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>

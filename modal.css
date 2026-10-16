@@ -1,0 +1,30 @@
+dialog { border: 0; padding: 0; color: var(--text); background: var(--surface); }
+dialog::backdrop { background: rgba(19, 16, 42, .55); }
+.sheet { width: 100%; max-width: 600px; max-height: 92vh; max-height: 92dvh; margin: auto auto 0; border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-2); overflow: hidden; }
+.sheet[open] { animation: sheet-in var(--t-base) ease-out; }
+.grab { width: 44px; height: 4px; border-radius: var(--r-full); background: var(--line); margin: var(--sp-2) auto var(--sp-1); }
+#sheetBody { max-height: calc(92vh - 20px); max-height: calc(92dvh - 20px); overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--sp-4); display: grid; gap: var(--sp-3); align-content: start; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3); padding-top: var(--sp-2); }
+.sheet-title { font-size: var(--fs-22); font-weight: 800; overflow-wrap: anywhere; }
+.sheet-foot { position: sticky; bottom: 0; background: var(--surface); padding: var(--sp-3) 0 calc(var(--sp-3) + env(safe-area-inset-bottom)); display: grid; gap: var(--sp-2); }
+.sheet-foot.row { display: flex; }
+#taskForm { display: grid; gap: var(--sp-3); }
+.detail { display: grid; }
+.detail .sheet-head { padding-top: 0; }
+
+.modal { width: min(92vw, 420px); margin: auto; border-radius: var(--r-xl); box-shadow: var(--shadow-2); }
+.modal[open] { animation: pop-in var(--t-base) ease-out; }
+.modal-inner { display: grid; gap: var(--sp-4); padding: var(--sp-6); }
+.modal-title { font-size: var(--fs-22); font-weight: 800; }
+.onb-star { font-size: 48px; line-height: 1; text-align: center; color: var(--star); }
+.onb-list { display: grid; gap: var(--sp-2); font-size: var(--fs-18); font-weight: 600; text-align: center; }
+.modal-inner .modal-title:only-child { text-align: center; }
+
+#celebrate { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 150; }
+.levelup { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-6) var(--sp-8); border-radius: var(--r-xl); background: var(--grad); color: #fff; font-size: var(--fs-22); text-align: center; box-shadow: var(--shadow-2); animation: pop-in var(--t-base) ease-out; }
+.levelup-star { font-size: var(--fs-32); }
+.conf { position: fixed; z-index: 160; pointer-events: none; font-size: var(--fs-18); animation: conf 800ms ease-out forwards; }
+
+@keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pop-in { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes conf { from { transform: translate(0, 0) scale(.6); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 0; } }

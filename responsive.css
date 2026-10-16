@@ -1,0 +1,23 @@
+@media (max-width: 359px) {
+  .two { grid-template-columns: 1fr; }
+  .hero-date { font-size: var(--fs-22); }
+  .page-title { font-size: var(--fs-22); }
+  .kv { grid-template-columns: 1fr; gap: var(--sp-1); }
+  .cal-title { font-size: var(--fs-18); }
+}
+@media (min-width: 768px) {
+  .app { max-width: 720px; }
+  .nav { max-width: 720px; }
+  .fab { right: calc(50% - 360px + var(--sp-4)); }
+  .sheet { max-width: 640px; margin: auto; border-radius: var(--r-xl); }
+  #sheetBody { max-height: calc(88vh - 20px); }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (orientation: landscape) and (max-height: 480px) {
+  .app { padding-bottom: 96px; }
+  .nav button { min-height: 44px; grid-auto-flow: column; gap: var(--sp-2); }
+  .fab { bottom: calc(60px + env(safe-area-inset-bottom)); }
+  #toasts { bottom: calc(120px + env(safe-area-inset-bottom)); }
+  .sheet { max-height: 100vh; max-height: 100dvh; }
+  #sheetBody { max-height: calc(100dvh - 20px); }
+}

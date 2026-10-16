@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Performance · Agenda Étoile</title>
+<style>body{font-family:system-ui,sans-serif;padding:16px;max-width:640px;margin:auto}li{margin:6px 0}</style></head>
+<body><h1>Performance (10 000 tâches)</h1><p>Durées en millisecondes, mesurées sur cet appareil. Rien n'est écrit dans tes données.</p><ul id="out"></ul>
+<script type="module">
+import { measure } from './perf.js';
+const out = document.getElementById('out');
+for (const r of measure(10000)) { const li = document.createElement('li'); li.textContent = r.ms + '  ' + r.label; out.append(li); }
+</script></body></html>
