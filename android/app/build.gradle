@@ -1,0 +1,56 @@
+plugins { id 'com.android.application' }
+
+// Clé de signature : celle du dépôt par défaut (signature stable d'une compilation à l'autre, les mises à jour
+// s'installent par-dessus l'ancienne version). Pour utiliser votre propre clé, définissez ces variables
+// d'environnement (voir README-ANDROID.md) : ANDROID_KEYSTORE_FILE, ANDROID_KEYSTORE_PASSWORD,
+// ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD.
+def customStore = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'com.agendaetoile.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.agendaetoile.app'
+        minSdk 26
+        targetSdk 35
+        versionCode 219
+        versionName '2.1.9'
+    }
+
+    signingConfigs {
+        release {
+            if (customStore) {
+                storeFile file(customStore)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            } else {
+                storeFile file('agenda-etoile.jks')
+                storePassword 'agendaetoile'
+                keyAlias 'agenda'
+                keyPassword 'agendaetoile'
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}

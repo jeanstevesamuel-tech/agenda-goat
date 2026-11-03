@@ -1,0 +1,29 @@
+.list { display: grid; gap: var(--sp-2); }
+.task { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1); background: var(--surface); border: 1px solid var(--line); border-inline-start: 4px solid var(--subject); border-radius: var(--r-m); box-shadow: var(--shadow-1); }
+.check { position: relative; isolation: isolate; flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: #fff; font-size: var(--fs-14); font-weight: 800; }
+.check::before { content: ""; position: absolute; inset: 8px; z-index: -1; border-radius: 50%; border: 3px solid var(--subject); transition: background var(--t-fast); }
+.is-done .check::before { background: var(--success); border-color: var(--success); }
+.task-body { flex: 1; min-width: 0; display: grid; gap: 2px; text-align: start; background: none; border: 0; padding: var(--sp-2) 0; min-height: 44px; }
+.task-title { font-weight: 700; overflow-wrap: anywhere; }
+.task-meta { font-size: var(--fs-14); color: var(--text-2); overflow-wrap: anywhere; }
+.is-done .task-title { text-decoration: line-through; color: var(--text-2); }
+.pri { flex: none; font-size: var(--fs-12); font-weight: 800; padding: var(--sp-1) var(--sp-2); border-radius: var(--r-full); }
+.pri-important { background: var(--alert-soft); color: var(--alert); }
+.pri-urgent { background: var(--error-soft); color: var(--error); }
+
+.level-card { display: grid; gap: var(--sp-2); text-align: center; }
+.big { font-size: var(--fs-32); font-weight: 800; }
+.big-sm { font-size: var(--fs-22); font-weight: 800; }
+.level-name { font-weight: 700; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.stat { display: grid; gap: var(--sp-1); align-content: start; }
+.rewards { display: grid; gap: var(--sp-2); margin-top: var(--sp-3); }
+.reward { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-m); background: var(--surface-2); opacity: .75; }
+.reward.is-on { opacity: 1; background: var(--primary-soft); font-weight: 700; }
+.reward-state { font-size: var(--fs-12); }
+.reward-mark { font-size: var(--fs-18); color: var(--star); }
+
+.kvs { display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.kv { display: grid; grid-template-columns: 96px 1fr; gap: var(--sp-3); }
+.kv dt { color: var(--text-2); font-size: var(--fs-14); font-weight: 700; }
+.kv dd { margin: 0; overflow-wrap: anywhere; }

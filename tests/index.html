@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tests · Agenda Étoile</title>
+<style>body{font-family:system-ui,sans-serif;padding:16px;max-width:640px;margin:auto}li{margin:4px 0}.ok{color:#0b8f68}.ko{color:#c4204b;font-weight:700}</style></head>
+<body><h1>Tests</h1><p id="sum">En cours…</p><ul id="out"></ul>
+<script type="module">
+import { runAll } from './suite.js';
+const out = document.getElementById('out');
+const r = await runAll((ok, name, msg) => { const li = document.createElement('li'); li.className = ok ? 'ok' : 'ko'; li.textContent = (ok ? '✓ ' : '✗ ') + name + (ok ? '' : ' — ' + msg); out.append(li); });
+document.getElementById('sum').textContent = r.pass + ' / ' + r.total + ' tests réussis';
+</script></body></html>

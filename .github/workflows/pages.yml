@@ -1,0 +1,56 @@
+name: Tests et publication GitHub Pages
+
+on:
+  push:
+    branches: [main, principal]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Vérifier l’application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Tests automatisés et simulations
+        run: |
+          npm test
+          npm run sim
+
+  deploy:
+    name: Publier sur GitHub Pages
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Configurer GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Préparer les fichiers du site (sans le projet Android)
+        run: |
+          mkdir _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'android' --exclude '_site' ./ _site/
+      - name: Envoyer les fichiers du site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publier
+        id: deployment
+        uses: actions/deploy-pages@v4

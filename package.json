@@ -1,0 +1,11 @@
+{
+  "name": "agenda-etoile",
+  "version": "2.1.9",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run.mjs && node tests/smoke.mjs",
+    "sim": "node tests/sim/run-all.mjs",
+    "perf": "node tests/perf.mjs"
+  }
+}
