@@ -1,4 +1,4 @@
-# Agenda Étoile v2.1.4 (robustesse)
+# Agenda Étoile v2.1.9 (robustesse)
 
 Appli de devoirs et de leçons pour élèves. HTML, CSS et JavaScript natifs, sans framework, sans build.
 
@@ -7,18 +7,13 @@ Appli de devoirs et de leçons pour élèves. HTML, CSS et JavaScript natifs, sa
 - `css/` : design system (`base.css`) puis composants, calendrier, tâches, fenêtres, responsive
 - `js/` : un module par responsabilité (`state`, `storage`, `tasks`, `notifications`, `reminders`, `calendar`, `ui`, `validation`, `statistics`, `utils`, `strings.fr`)
 - `sw.js`, `manifest.webmanifest`, `icons/` : installation et fonctionnement hors ligne
-- `tests/` : 61 tests automatiques, un test de fumée de l'interface et des mesures de performance
+- `tests/` : 67 tests automatiques, un test de fumée de l'interface, des simulations et des mesures de performance
 
-## Mise en ligne (depuis Termux)
-```
-unzip agenda-etoile-v2.1.2.zip
-cd agenda-etoile-v2.1.2
-git add . && git commit -m "Agenda Étoile v2.1.2" && git push
-```
-Puis active GitHub Pages dans les réglages du dépôt. L'appli doit être servie en https : les modules JavaScript ne fonctionnent pas en ouvrant `index.html` directement depuis les fichiers.
+## Mise en ligne avec GitHub Pages
+Le workflow `.github/workflows/pages.yml` lance les tests puis publie le site à chaque push sur `principal` ou `main`. Dans GitHub, ouvre **Settings → Pages** et sélectionne **GitHub Actions** comme source de déploiement. Si ton dépôt utilise une autre branche par défaut, adapte la liste `branches` du workflow. L'application doit être servie en HTTPS : les modules JavaScript ne fonctionnent pas en ouvrant `index.html` directement depuis les fichiers.
 
 ## Tests et simulations
-- `npm test` : 61 tests + contrôles de cohérence + test de fumée
+- `npm test` : 67 tests + contrôles de cohérence + test de fumée
 - `npm run sim` : toutes les simulations d'affilée (moteur sur 120 000 actions avec horloge truquée, 16 fuseaux horaires dont Haïti, fuzz de 31 500 données, parcours de l'interface écran par écran, service worker, démarrage, audit CSS/HTML/manifeste)
 - `node tests/perf.mjs` ou `/tests/perf.html` sur ton téléphone : temps avec 10 000 tâches
 - `/tests/` dans le navigateur : la suite de tests, sans Node
@@ -57,6 +52,10 @@ Rappel manqué affiché sur une tâche déjà terminée ; rappels manqués péri
 
 ### 2.1.4
 Ajout d’un choix de son de notification dans Réglages. Le fichier audio est stocké localement et peut être remplacé ou retiré à tout moment. Dans une PWA, le navigateur ne permet pas de forcer le son système de la notification : la lecture personnalisée est donc disponible pour l’aperçu et l’intégration native devra gérer le canal de notification sonore dans l’APK final.
+
+## Nouveautés 2.1.9
+- Fusion des anciens marquages « Test » et « Évaluation » sous « Test d’évaluation ».
+- Programme de révision accessible pour toutes les matières du programme, y compris celles sans tâche enregistrée.
 
 ## Nouveautés 2.1.8
 

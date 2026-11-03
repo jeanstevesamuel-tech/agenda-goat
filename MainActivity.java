@@ -18,6 +18,9 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -26,18 +29,30 @@ import android.webkit.WebViewClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
 
 public class MainActivity extends android.app.Activity {
     private static final int PICK_SOUND = 4201;
     private static final int REQUEST_NOTIFICATIONS = 4202;
+    private static final int PICK_FILE = 4203;
+    private static final int SAVE_FILE = 4204;
+    // Les fichiers de l'appli sont servis en https depuis les assets : les modules JavaScript (type="module")
+    // sont refusés par la WebView sur file:// (origine « null »), ce qui laisserait l'écran de démarrage bloqué.
+    private static final String ASSET_HOST = "appassets.androidplatform.net";
+    private static final String START_URL = "https://" + ASSET_HOST + "/assets/www/index.html";
     private static final String PREFS = "agenda_native";
     private static final String SOUND_URI = "sound_uri";
     private static final String SOUND_NAME = "sound_name";
     private static final String NOTIF_REQUESTED = "notification_requested";
     private WebView webView;
+    private ValueCallback<Uri[]> fileCallback;
+    private String pendingSaveContent;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -45,20 +60,95 @@ public class MainActivity extends android.app.Activity {
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
-        ws.setAllowFileAccess(true);
+        ws.setAllowFileAccess(false);
         ws.setAllowContentAccess(true);
-        webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                WebResourceResponse r = serveAsset(request.getUrl());
+                return r != null ? r : super.shouldInterceptRequest(view, request);
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                Uri u = request.getUrl();
+                if (ASSET_HOST.equals(u.getHost())) return false;
+                String scheme = u.getScheme();
+                if ("http".equals(scheme) || "https".equals(scheme)) {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
+                }
+                return true; // jamais de navigation hors de l'appli : le pont Java n'est pas exposé à d'autres pages
+            }
+        });
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                String type = "*/*";
+                String[] accept = params == null ? null : params.getAcceptTypes();
+                if (accept != null && accept.length > 0 && accept[0] != null && accept[0].startsWith("audio/")) type = "audio/*";
+                Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                i.addCategory(Intent.CATEGORY_OPENABLE);
+                i.setType(type);
+                try { startActivityForResult(i, PICK_FILE); }
+                catch (Exception e) { fileCallback = null; callback.onReceiveValue(null); }
+                return true;
+            }
+        });
         webView.addJavascriptInterface(new NativeBridge(this), "AndroidAgenda");
         setContentView(webView);
         loadFromIntent(getIntent());
         createDefaultChannel();
     }
 
+    private static String mimeFor(String path) {
+        String p = path.toLowerCase(java.util.Locale.ROOT);
+        if (p.endsWith(".html")) return "text/html";
+        if (p.endsWith(".js") || p.endsWith(".mjs")) return "text/javascript";
+        if (p.endsWith(".css")) return "text/css";
+        if (p.endsWith(".json") || p.endsWith(".webmanifest")) return "application/json";
+        if (p.endsWith(".svg")) return "image/svg+xml";
+        if (p.endsWith(".png")) return "image/png";
+        if (p.endsWith(".jpg") || p.endsWith(".jpeg")) return "image/jpeg";
+        if (p.endsWith(".webp")) return "image/webp";
+        if (p.endsWith(".ico")) return "image/x-icon";
+        return "application/octet-stream";
+    }
+
+    // Sert https://appassets.androidplatform.net/assets/www/... depuis le dossier assets/www de l'APK.
+    private WebResourceResponse serveAsset(Uri uri) {
+        if (uri == null || !"https".equals(uri.getScheme()) || !ASSET_HOST.equals(uri.getHost())) return null;
+        String path = uri.getPath();
+        if (path == null || !path.startsWith("/assets/www/") || path.contains("..")) return null;
+        String mime = mimeFor(path);
+        String enc = mime.startsWith("text/") || mime.endsWith("json") || mime.endsWith("svg+xml") ? "utf-8" : null;
+        try {
+            InputStream in = getAssets().open(path.substring("/assets/".length()));
+            return new WebResourceResponse(mime, enc, in);
+        } catch (IOException e) {
+            return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", new HashMap<String, String>(), new ByteArrayInputStream(new byte[0]));
+        }
+    }
+
+    @Override public void onBackPressed() {
+        if (webView == null) { super.onBackPressed(); return; }
+        // Retour : ferme d'abord une fiche ou une fenêtre ouverte, sinon quitte l'appli comme d'habitude.
+        webView.evaluateJavascript("(function(){var d=document.querySelector('dialog[open]');if(d){d.close();return true;}return false;})()", value -> {
+            if (!"true".equals(value)) super.onBackPressed();
+        });
+    }
+
+    private void startSave(String name, String mime, String content) {
+        pendingSaveContent = content;
+        Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType(mime == null || mime.isEmpty() ? "application/json" : mime);
+        i.putExtra(Intent.EXTRA_TITLE, name);
+        try { startActivityForResult(i, SAVE_FILE); }
+        catch (Exception e) { pendingSaveContent = null; callJs("window.__agendaNativeFileSaved && window.__agendaNativeFileSaved(false)"); }
+    }
+
     private void loadFromIntent(Intent intent) {
         String task = intent == null ? null : intent.getStringExtra("task");
-        if (task != null && !task.isEmpty()) webView.loadUrl("file:///android_asset/www/index.html?task=" + Uri.encode(task));
-        else webView.loadUrl("file:///android_asset/www/index.html");
+        if (task != null && !task.isEmpty()) webView.loadUrl(START_URL + "?task=" + Uri.encode(task));
+        else webView.loadUrl(START_URL);
     }
 
     @Override protected void onNewIntent(Intent intent) {
@@ -121,6 +211,25 @@ public class MainActivity extends android.app.Activity {
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_FILE) {
+            if (fileCallback != null) {
+                fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+                fileCallback = null;
+            }
+            return;
+        }
+        if (requestCode == SAVE_FILE) {
+            String content = pendingSaveContent;
+            pendingSaveContent = null;
+            boolean ok = false;
+            if (resultCode == RESULT_OK && data != null && data.getData() != null && content != null) {
+                try (OutputStream os = getContentResolver().openOutputStream(data.getData(), "wt")) {
+                    if (os != null) { os.write(content.getBytes(StandardCharsets.UTF_8)); os.flush(); ok = true; }
+                } catch (Exception ignored) { }
+            }
+            callJs("window.__agendaNativeFileSaved && window.__agendaNativeFileSaved(" + ok + ")");
+            return;
+        }
         if (requestCode != PICK_SOUND) return;
         if (resultCode != RESULT_OK || data == null || data.getData() == null) {
             callJs("window.__agendaNativeSoundSelected && window.__agendaNativeSoundSelected(null)");
@@ -150,7 +259,9 @@ public class MainActivity extends android.app.Activity {
         ContentResolver cr = getContentResolver();
         ContentValues v = new ContentValues();
         v.put(MediaStore.Audio.Media.DISPLAY_NAME, "AgendaEtoile_" + System.currentTimeMillis() + "_" + name.replaceAll("[^A-Za-z0-9._-]", "_") );
-        v.put(MediaStore.Audio.Media.MIME_TYPE, cr.getType(source) != null ? cr.getType(source) : "audio/mpeg");
+        String mime = cr.getType(source);
+        if (mime == null || !mime.startsWith("audio/")) mime = "audio/mpeg";
+        v.put(MediaStore.Audio.Media.MIME_TYPE, mime);
         if (Build.VERSION.SDK_INT >= 29) {
             v.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/Agenda Étoile");
             v.put(MediaStore.Audio.Media.IS_PENDING, 1);
@@ -199,7 +310,7 @@ public class MainActivity extends android.app.Activity {
         private final Context ctx;
         NativeBridge(Context c) { ctx = c; }
 
-        @JavascriptInterface public String notificationPermissionState() { return notificationPermissionState(); }
+        @JavascriptInterface public String notificationPermissionState() { return MainActivity.this.notificationPermissionState(); }
         @JavascriptInterface public void requestNotifications() { runOnUiThread(() -> requestNotificationPermission()); }
         @JavascriptInterface public void pickNotificationSound() { runOnUiThread(() -> pickSound()); }
         @JavascriptInterface public String getNotificationSoundName() { return getSharedPreferences(PREFS, MODE_PRIVATE).getString(SOUND_NAME, ""); }
@@ -231,8 +342,9 @@ public class MainActivity extends android.app.Activity {
             ReminderReceiver.schedule(ctx, id, at, title, body, taskId, tag, currentChannel());
         }
         @JavascriptInterface public void cancelReminder(String id) { ReminderReceiver.cancel(ctx, id); }
-        @JavascriptInterface public void openNotificationSettings() { runOnUiThread(() -> openNotificationSettings()); }
-        @JavascriptInterface public void openExactAlarmSettings() { runOnUiThread(() -> openExactAlarmSettings()); }
+        @JavascriptInterface public void saveFile(String name, String mime, String content) { runOnUiThread(() -> startSave(name, mime, content)); }
+        @JavascriptInterface public void openNotificationSettings() { runOnUiThread(() -> MainActivity.this.openNotificationSettings()); }
+        @JavascriptInterface public void openExactAlarmSettings() { runOnUiThread(() -> MainActivity.this.openExactAlarmSettings()); }
         @JavascriptInterface public boolean exactAlarmAllowed() { return Build.VERSION.SDK_INT < 31 || ((AlarmManager)getSystemService(ALARM_SERVICE)) != null && ((AlarmManager)getSystemService(ALARM_SERVICE)).canScheduleExactAlarms(); }
     }
 }

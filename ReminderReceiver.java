@@ -120,7 +120,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         PendingIntent pi=PendingIntent.getActivity(c,requestCode("open_"+taskId),open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         android.app.Notification.Builder b;
         if (Build.VERSION.SDK_INT >= 26) b = new android.app.Notification.Builder(c, channel); else b = new android.app.Notification.Builder(c).setPriority(android.app.Notification.PRIORITY_HIGH);
-        b.setSmallIcon(com.agendaetoile.app.R.drawable.icon).setContentTitle(title==null?"Rappel":title).setContentText(body==null?"Rappel de tâche":body).setStyle(new android.app.Notification.BigTextStyle().bigText(body==null?"Rappel de tâche":body)).setAutoCancel(true).setContentIntent(pi).setCategory(android.app.Notification.CATEGORY_REMINDER);
+        b.setSmallIcon(com.agendaetoile.app.R.drawable.ic_stat_star).setColor(0xFFD42D78).setContentTitle(title==null?"Rappel":title).setContentText(body==null?"Rappel de tâche":body).setStyle(new android.app.Notification.BigTextStyle().bigText(body==null?"Rappel de tâche":body)).setAutoCancel(true).setContentIntent(pi).setCategory(android.app.Notification.CATEGORY_REMINDER);
         nm.notify(tag == null ? requestCode(taskId) : requestCode(tag), b.build());
     }
 }
